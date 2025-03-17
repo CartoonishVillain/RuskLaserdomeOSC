@@ -15,6 +15,8 @@ We also have a test world here, if you don't want to pool folks together to test
 
 
 ### Usage
+This module, by default, assumes a default path for the VRChat logs. In the future I may add a non-standard path reading feature.
+
 When installed, ensure the module is enabled, in the settings check the "Toggle Log Reader" button.
 
 Notice: It's recommended to activate this module early in VRChat's life time. It continously scans log entries you haven't seen before, it could take some time to catch up, and may even be resource intensive (unverified) if it has a lot of logs to parse through!
