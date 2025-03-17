@@ -17,6 +17,7 @@ namespace RuskOSCModule
         int fileCheckCounter = 20;
         FileInfo? currentLog = null;
         long lastCountedLine = 0;
+        int team = 0;
 
         protected override void OnPreLoad()
         {
@@ -77,6 +78,7 @@ namespace RuskOSCModule
                 {
                     // local var to track player death, ideally to avoid a case where a player somehow switches avatars mid parse and maybe causes undefined behavior.
                     var lastDead = playerDead;
+                    var lastTeam = team;
 
                     using (var stream = File.Open(currentLog.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     {
@@ -110,6 +112,36 @@ namespace RuskOSCModule
                                     lastDead = true;
                                     Log("Read Dead Signal!");
                                 }
+                                if (line.Contains("[AvatarInteraction] Team changed to 0"))
+                                {
+                                    lastTeam = 0;
+                                    Log("Team Signal - 0 - null team?");
+                                }
+                                if (line.Contains("[AvatarInteraction] Team changed to 1"))
+                                {
+                                    lastTeam = 1;
+                                    Log("Team Signal - 1 - Free For All");
+                                }
+                                if (line.Contains("[AvatarInteraction] Team changed to 2"))
+                                {
+                                    lastTeam = 2;
+                                    Log("Team Signal - 2 - Red team");
+                                }
+                                if (line.Contains("[AvatarInteraction] Team changed to 3"))
+                                {
+                                    lastTeam = 3;
+                                    Log("Team Signal - 3 - Pink team");
+                                }
+                                if (line.Contains("[AvatarInteraction] Team changed to 4"))
+                                {
+                                    lastTeam = 4;
+                                    Log("Team Signal - 4 - Blue team");
+                                }
+                                if (line.Contains("[AvatarInteraction] Team changed to 5"))
+                                {
+                                    lastTeam = 5;
+                                    Log("Team Signal - 5 - Green team");
+                                }
                             }
                         }
                         stream.Close();
@@ -117,7 +149,9 @@ namespace RuskOSCModule
 
                     //Reconcile the final results of the Death and Team checks, and push them to the Avatar Parameters
                     playerDead = lastDead;
+                    team = lastTeam;
                     SendParameter("LD/Dead", playerDead);
+                    SendParameter("LD/Team", team);
                 }
             }
             else
