@@ -21,7 +21,6 @@ namespace RuskLaserdomeOSC
 
         protected override void OnPreLoad()
         {
-            currentLog = directoryInfo.GetFiles().OrderByDescending(f => f.LastWriteTime).First();
             base.OnPreLoad();
             CreateToggle(RuskLaserOSCSetting.ToggleLogReader, "Toggle Log Reader", "Log Reading could possibly somewhat intensive, if a lot of logs need to be scanned initially. But having this off will disable functionality outright.", logReading);
         }
@@ -33,6 +32,7 @@ namespace RuskLaserdomeOSC
 
         protected override Task<bool> OnModuleStart()
         {
+            currentLog = directoryInfo.GetFiles().OrderByDescending(f => f.LastWriteTime).First();
             logReading = false;
             playerDead = false;
             return Task.FromResult(true);
@@ -149,10 +149,16 @@ namespace RuskLaserdomeOSC
                     }
 
                     //Reconcile the final results of the Death and Team checks, and push them to the Avatar Parameters
-                    playerDead = lastDead;
-                    team = lastTeam;
-                    SendParameter("LD/Dead", playerDead);
-                    SendParameter("LD/Team", team);
+                    if(playerDead != lastDead)
+                    {
+                        playerDead = lastDead;
+                        SendParameter("LD/Dead", playerDead);
+                    }
+                    if(team != lastTeam)
+                    {
+                        team = lastTeam;
+                        SendParameter("LD/Team", team);
+                    }
                 }
             }
             else
