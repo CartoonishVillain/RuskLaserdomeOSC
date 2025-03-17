@@ -3,7 +3,7 @@ using System.Text;
 using VRCOSC.App.SDK.Modules;
 using VRCOSC.App.SDK.VRChat;
 
-namespace RuskOSCModule
+namespace RuskLaserdomeOSC
 {
     [ModuleTitle("RuskLaserdomeOSC")]
     [ModuleDescription("Rusk Co's Laserdome Compatibility Module")]
@@ -42,6 +42,7 @@ namespace RuskOSCModule
         {
             base.OnAvatarChange(avatarConfig);
             SendParameter("LD/Dead", playerDead);
+            SendParameter("LD/Team", team);
         }
 
 
@@ -112,32 +113,32 @@ namespace RuskOSCModule
                                     lastDead = true;
                                     Log("Read Dead Signal!");
                                 }
-                                if (line.Contains("[AvatarInteraction] Team changed to 0"))
+                                if (line.Contains("[AvatarInteraction] Team changed to 0") || line.Contains("[AvatarInteraction] Team changed to {0}"))
                                 {
                                     lastTeam = 0;
                                     Log("Team Signal - 0 - null team?");
                                 }
-                                if (line.Contains("[AvatarInteraction] Team changed to 1"))
+                                if (line.Contains("[AvatarInteraction] Team changed to 1") || line.Contains("[AvatarInteraction] Team changed to {1}"))
                                 {
                                     lastTeam = 1;
                                     Log("Team Signal - 1 - Free For All");
                                 }
-                                if (line.Contains("[AvatarInteraction] Team changed to 2"))
+                                if (line.Contains("[AvatarInteraction] Team changed to 2") || line.Contains("[AvatarInteraction] Team changed to {2}"))
                                 {
                                     lastTeam = 2;
                                     Log("Team Signal - 2 - Red team");
                                 }
-                                if (line.Contains("[AvatarInteraction] Team changed to 3"))
+                                if (line.Contains("[AvatarInteraction] Team changed to 3") || line.Contains("[AvatarInteraction] Team changed to {3}"))
                                 {
                                     lastTeam = 3;
                                     Log("Team Signal - 3 - Pink team");
                                 }
-                                if (line.Contains("[AvatarInteraction] Team changed to 4"))
+                                if (line.Contains("[AvatarInteraction] Team changed to 4") || line.Contains("[AvatarInteraction] Team changed to {4}"))
                                 {
                                     lastTeam = 4;
                                     Log("Team Signal - 4 - Blue team");
                                 }
-                                if (line.Contains("[AvatarInteraction] Team changed to 5"))
+                                if (line.Contains("[AvatarInteraction] Team changed to 5") || line.Contains("[AvatarInteraction] Team changed to {5}"))
                                 {
                                     lastTeam = 5;
                                     Log("Team Signal - 5 - Green team");
