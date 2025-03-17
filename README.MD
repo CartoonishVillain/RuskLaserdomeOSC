@@ -11,7 +11,7 @@ We also have a test world here, if you don't want to pool folks together to test
 ### Installation
 1. Download this repository and build the module yourself. If you're successful, it'll show up as an unknown local VRCOSC module. Probably the "Safest" way of installation (I have no malicious intent, but for those who feel "better safe than sorry")
 2. Download the latest release DLL, and place it in the VRCOSC folder (default windows directory: %appdata%/VRCOSC/packages/local)
-3. Install through the VRCOSC app: On the first tab on the left of the app, you can install Rusk Laserdome OSC directly by hitting the plus button. It'll still read as unknown for now.. I dunno what that's about. 
+3. Install through the VRCOSC app: On the first tab on the left of the app, you can install Rusk Laserdome OSC directly by hitting the plus button.
 
 
 ### Usage
