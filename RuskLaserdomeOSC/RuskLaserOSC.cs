@@ -43,13 +43,25 @@ namespace RuskOSCModule
             SendParameter("LD/Dead", playerDead);
         }
 
+
+        //The file reading here heavily takes notes from VRCX's repository.
+        //Because they are under the MIT license, here is that below.
+        // Copyright(c) 2019-2022 pypy, Natsumi and individual contributors.
+        // All rights reserved.
+        //
+        // This work is licensed under the terms of the MIT license.
+        // For a copy, see <https://opensource.org/licenses/MIT>.
+
+
+        // as well as a link to their repo and file that I referenced:
+        //https://github.com/vrcx-team/VRCX/blob/634f465927bfaef51bc04e67cf1659170953fac9/LogWatcher.cs
+
         [ModuleUpdate(ModuleUpdateMode.Custom, false, 50)]
         private void onUpdate()
         {
-            bool isActive = GetSettingValue<bool>(RuskLaserOSCSetting.ToggleLogReader);
-       
-            if (isActive)
+            if (GetSettingValue<bool>(RuskLaserOSCSetting.ToggleLogReader))
             {
+                //This ensures that we have the latest log file.
                 if (fileCheckCounter > 0 || currentLog == null)
                 {
                     fileCheckCounter -= 1;
@@ -60,12 +72,15 @@ namespace RuskOSCModule
                     currentLog = directoryInfo.GetFiles().OrderByDescending(f => f.LastWriteTime).First();
                 }
 
+                //If we do have a log file, read it.
                 if (currentLog != null)
                 {
+                    // local var to track player death, ideally to avoid a case where a player somehow switches avatars mid parse and maybe causes undefined behavior.
                     var lastDead = playerDead;
 
                     using (var stream = File.Open(currentLog.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     {
+                        //Only read lines we haven't read already by setting the position to already be where we left off last.
                         stream.Position = lastCountedLine;
                         using(var streamReader = new StreamReader(stream, Encoding.UTF8))
                         {
@@ -74,6 +89,7 @@ namespace RuskOSCModule
                                 var line = streamReader.ReadLine();
                                 if(line == null)
                                 {
+                                    //At the end of the read, mark down the last line we read, so we can pick up there next time.
                                     lastCountedLine = stream.Position;
                                     break;
                                 }
@@ -83,6 +99,7 @@ namespace RuskOSCModule
                                     continue;
                                 }
 
+                                // Alive and Dead log checks
                                 if (line.Contains("[AvatarInteraction] Alive"))
                                 {
                                     lastDead = false;
@@ -97,6 +114,8 @@ namespace RuskOSCModule
                         }
                         stream.Close();
                     }
+
+                    //Reconcile the final results of the Death and Team checks, and push them to the Avatar Parameters
                     playerDead = lastDead;
                     SendParameter("LD/Dead", playerDead);
                 }
