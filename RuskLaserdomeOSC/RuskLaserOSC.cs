@@ -5,7 +5,7 @@ using VRCOSC.App.SDK.VRChat;
 
 namespace RuskOSCModule
 {
-    [ModuleTitle("RuskLaserOSC")]
+    [ModuleTitle("RuskLaserdomeOSC")]
     [ModuleDescription("Rusk Co's Laserdome Compatibility Module")]
     [ModuleType(ModuleType.Integrations)]
     public class RuskLaserOSC : Module
@@ -23,7 +23,7 @@ namespace RuskOSCModule
         {
             currentLog = directoryInfo.GetFiles().OrderByDescending(f => f.LastWriteTime).First();
             base.OnPreLoad();
-            CreateToggle(RuskLaserOSCSetting.ToggleLogReader, "Toggle Log Reader", "Log Reading can be somewhat intensive. This will also disable functionality outright.", logReading);
+            CreateToggle(RuskLaserOSCSetting.ToggleLogReader, "Toggle Log Reader", "Log Reading could possibly somewhat intensive, if a lot of logs need to be scanned initially. But having this off will disable functionality outright.", logReading);
         }
 
         private enum RuskLaserOSCSetting
