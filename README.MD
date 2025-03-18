@@ -6,7 +6,9 @@ This module currently works for Laserdome 1 but not Laserdome 2. Cirrex has conf
 
 This module depends on VRCOSC, found here: https://vrcosc.com/
 
-We also have a test world here, if you don't want to pool folks together to test in a live arena: https://vrchat.com/home/world/wrld_3b191e33-5262-444c-9259-d6d3a6beb5fc/info
+You'll also need to enable logging in Vrchat, under the debug settings. 
+
+We have a test world here, if you don't want to pool folks together to test in a live arena: https://vrchat.com/home/world/wrld_3b191e33-5262-444c-9259-d6d3a6beb5fc/info
 
 ### Installation Options
 1. Download this repository and build the module yourself. If you're successful, it'll show up as an unknown local VRCOSC module. Probably the "Safest" way of installation (I have no malicious intent, but for those who feel "better safe than sorry")
