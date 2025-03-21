@@ -14,7 +14,7 @@ namespace RuskLaserdomeOSC
         bool logReading = false;
         bool playerDead = false;
         DirectoryInfo directoryInfo = new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"Low\VRChat\VRChat");
-        int fileCheckCounter = 20;
+        int fileCheckCounter = 200;
         FileInfo? currentLog = null;
         long lastCountedLine = 0;
         int team = 0;
@@ -32,7 +32,10 @@ namespace RuskLaserdomeOSC
 
         protected override Task<bool> OnModuleStart()
         {
+            directoryInfo.Refresh();
             currentLog = directoryInfo.GetFiles().OrderByDescending(f => f.LastWriteTime).First();
+            lastCountedLine = 0;
+          //  Log(currentLog.FullName + "- Log file set to this file.");
             logReading = false;
             playerDead = false;
             return Task.FromResult(true);
@@ -70,8 +73,10 @@ namespace RuskLaserdomeOSC
                 }
                 else
                 {
-                    fileCheckCounter = 20;
+                    fileCheckCounter = 200;
+                    directoryInfo.Refresh();
                     currentLog = directoryInfo.GetFiles().OrderByDescending(f => f.LastWriteTime).First();
+               //     Log(currentLog.FullName + "- Log file set to this file.");
                 }
 
                 //If we do have a log file, read it.
@@ -82,10 +87,10 @@ namespace RuskLaserdomeOSC
                     var lastTeam = team;
 
                     using (var stream = File.Open(currentLog.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                    {
+                    { 
                         //Only read lines we haven't read already by setting the position to already be where we left off last.
                         stream.Position = lastCountedLine;
-                        using(var streamReader = new StreamReader(stream, Encoding.UTF8))
+                        using (var streamReader = new StreamReader(stream, Encoding.UTF8))
                         {
                             while (true)
                             {
@@ -93,6 +98,7 @@ namespace RuskLaserdomeOSC
                                 if(line == null)
                                 {
                                     //At the end of the read, mark down the last line we read, so we can pick up there next time.
+                                  //  Log("File Opened Successfully!" + "\nprevious line count: " + lastCountedLine +"\nNew line count: " + stream.Position);
                                     lastCountedLine = stream.Position;
                                     break;
                                 }
