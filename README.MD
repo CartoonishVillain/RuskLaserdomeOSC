@@ -2,7 +2,7 @@
 
 This is a module that reimplments the laserdome avatar functionality of LD/Dead and LD/Team for those who want to continue using the interactive elements on their avatars.
 
-This module currently works for Laserdome 1 but not Laserdome 2. Cirrex has confirmed that they will be adding in logging support LD2, if Cirrex uses the same logging schema they do in Laserdome 1 in Laserdome 2 it will connect fine, otherwise I'll patch it later.
+This module currently works for Laserdome 1 and Laserdome 2.
 
 This module depends on VRCOSC, found here: https://vrcosc.com/
 
