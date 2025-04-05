@@ -11,7 +11,8 @@ namespace RuskLaserdomeOSC
     public class RuskLaserOSC : Module
     {
 
-        bool logReading = false;
+        bool ldDead = false;
+        bool ldTeam = false;
         bool playerDead = false;
         DirectoryInfo directoryInfo = new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"Low\VRChat\VRChat");
         int fileCheckCounter = 200;
@@ -22,12 +23,14 @@ namespace RuskLaserdomeOSC
         protected override void OnPreLoad()
         {
             base.OnPreLoad();
-            CreateToggle(RuskLaserOSCSetting.ToggleLogReader, "Toggle Log Reader", "Log Reading could possibly somewhat intensive, if a lot of logs need to be scanned initially. But having this off will disable functionality outright.", logReading);
+            CreateToggle(RuskLaserOSCSetting.ToggleLaserDead, "Toggle LD/Dead", "Reads for logs pertaining to LD/Dead functionality", ldDead);
+            CreateToggle(RuskLaserOSCSetting.ToggleLaserTeam, "Toggle LD/Team", "Reads for logs pertaining to LD/Team functionality", ldTeam);
         }
 
         private enum RuskLaserOSCSetting
         {
-            ToggleLogReader
+            ToggleLaserDead,
+            ToggleLaserTeam
         }
 
         protected override Task<bool> OnModuleStart()
@@ -36,7 +39,6 @@ namespace RuskLaserdomeOSC
             currentLog = directoryInfo.GetFiles().OrderByDescending(f => f.LastWriteTime).First();
             lastCountedLine = 0;
           //  Log(currentLog.FullName + "- Log file set to this file.");
-            logReading = false;
             playerDead = false;
             return Task.FromResult(true);
         }
@@ -64,8 +66,11 @@ namespace RuskLaserdomeOSC
         [ModuleUpdate(ModuleUpdateMode.Custom, false, 50)]
         private void onUpdate()
         {
-            if (GetSettingValue<bool>(RuskLaserOSCSetting.ToggleLogReader))
+            ldTeam = GetSettingValue<bool>(RuskLaserOSCSetting.ToggleLaserTeam);
+            ldDead = GetSettingValue<bool>(RuskLaserOSCSetting.ToggleLaserDead);
+            if (ldDead || ldTeam)
             {
+
                 //This ensures that we have the latest log file.
                 if (fileCheckCounter > 0 || currentLog == null)
                 {
@@ -108,46 +113,53 @@ namespace RuskLaserdomeOSC
                                     continue;
                                 }
 
-                                // Alive and Dead log checks
-                                if (line.Contains("[AvatarInteraction] Alive"))
+                                if (ldDead)
                                 {
-                                    lastDead = false;
-                                    Log("Read Alive Signal!");
+                                    // Alive and Dead log checks
+                                    if (line.Contains("[AvatarInteraction] Alive"))
+                                    {
+                                        lastDead = false;
+                                        Log("Read Alive Signal!");
+                                    }
+                                    if (line.Contains("[AvatarInteraction] Dead"))
+                                    {
+                                        lastDead = true;
+                                        Log("Read Dead Signal!");
+                                    }
                                 }
-                                if (line.Contains("[AvatarInteraction] Dead"))
+
+                                if (ldTeam)
                                 {
-                                    lastDead = true;
-                                    Log("Read Dead Signal!");
-                                }
-                                if (line.Contains("[AvatarInteraction] Team changed to 0") || line.Contains("[AvatarInteraction] Team changed to {0}"))
-                                {
-                                    lastTeam = 0;
-                                    Log("Team Signal - 0 - null team?");
-                                }
-                                if (line.Contains("[AvatarInteraction] Team changed to 1") || line.Contains("[AvatarInteraction] Team changed to {1}"))
-                                {
-                                    lastTeam = 1;
-                                    Log("Team Signal - 1 - Free For All");
-                                }
-                                if (line.Contains("[AvatarInteraction] Team changed to 2") || line.Contains("[AvatarInteraction] Team changed to {2}"))
-                                {
-                                    lastTeam = 2;
-                                    Log("Team Signal - 2 - Red team");
-                                }
-                                if (line.Contains("[AvatarInteraction] Team changed to 3") || line.Contains("[AvatarInteraction] Team changed to {3}"))
-                                {
-                                    lastTeam = 3;
-                                    Log("Team Signal - 3 - Pink team");
-                                }
-                                if (line.Contains("[AvatarInteraction] Team changed to 4") || line.Contains("[AvatarInteraction] Team changed to {4}"))
-                                {
-                                    lastTeam = 4;
-                                    Log("Team Signal - 4 - Blue team");
-                                }
-                                if (line.Contains("[AvatarInteraction] Team changed to 5") || line.Contains("[AvatarInteraction] Team changed to {5}"))
-                                {
-                                    lastTeam = 5;
-                                    Log("Team Signal - 5 - Green team");
+                                    if (line.Contains("[AvatarInteraction] Team changed to 0") || line.Contains("[AvatarInteraction] Team changed to {0}"))
+                                    {
+                                        lastTeam = 0;
+                                        Log("Team Signal - 0 - null team?");
+                                    }
+                                    if (line.Contains("[AvatarInteraction] Team changed to 1") || line.Contains("[AvatarInteraction] Team changed to {1}"))
+                                    {
+                                        lastTeam = 1;
+                                        Log("Team Signal - 1 - Free For All");
+                                    }
+                                    if (line.Contains("[AvatarInteraction] Team changed to 2") || line.Contains("[AvatarInteraction] Team changed to {2}"))
+                                    {
+                                        lastTeam = 2;
+                                        Log("Team Signal - 2 - Red team");
+                                    }
+                                    if (line.Contains("[AvatarInteraction] Team changed to 3") || line.Contains("[AvatarInteraction] Team changed to {3}"))
+                                    {
+                                        lastTeam = 3;
+                                        Log("Team Signal - 3 - Pink team");
+                                    }
+                                    if (line.Contains("[AvatarInteraction] Team changed to 4") || line.Contains("[AvatarInteraction] Team changed to {4}"))
+                                    {
+                                        lastTeam = 4;
+                                        Log("Team Signal - 4 - Blue team");
+                                    }
+                                    if (line.Contains("[AvatarInteraction] Team changed to 5") || line.Contains("[AvatarInteraction] Team changed to {5}"))
+                                    {
+                                        lastTeam = 5;
+                                        Log("Team Signal - 5 - Green team");
+                                    }
                                 }
                             }
                         }
@@ -155,12 +167,12 @@ namespace RuskLaserdomeOSC
                     }
 
                     //Reconcile the final results of the Death and Team checks, and push them to the Avatar Parameters
-                    if(playerDead != lastDead)
+                    if(playerDead != lastDead && ldDead)
                     {
                         playerDead = lastDead;
                         SendParameter("LD/Dead", playerDead);
                     }
-                    if(team != lastTeam)
+                    if(team != lastTeam && ldTeam)
                     {
                         team = lastTeam;
                         SendParameter("LD/Team", team);
@@ -169,7 +181,6 @@ namespace RuskLaserdomeOSC
             }
             else
             {
-                Log("Log File Not Found!");
             }
         }
     }
