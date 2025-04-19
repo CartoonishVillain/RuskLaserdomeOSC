@@ -11,26 +11,43 @@ namespace RuskLaserdomeOSC
     public class RuskLaserOSC : Module
     {
 
+        // Sys Toggles
         bool ldDead = false;
         bool ldTeam = false;
+        bool irPistol = false;
+        bool irFire = false;
+        bool irWeld = false;
+
+        // Player vars
         bool playerDead = false;
-        DirectoryInfo directoryInfo = new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"Low\VRChat\VRChat");
+        int team = 0;
+        bool holdPistol = false;
+        bool holdFire = false;
+        bool holdWeld = false;
+
+        // Log consumer stuff
         int fileCheckCounter = 200;
+        DirectoryInfo directoryInfo = new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"Low\VRChat\VRChat");
         FileInfo? currentLog = null;
         long lastCountedLine = 0;
-        int team = 0;
 
         protected override void OnPreLoad()
         {
             base.OnPreLoad();
             CreateToggle(RuskLaserOSCSetting.ToggleLaserDead, "Toggle LD/Dead", "Reads for logs pertaining to LD/Dead functionality", ldDead);
             CreateToggle(RuskLaserOSCSetting.ToggleLaserTeam, "Toggle LD/Team", "Reads for logs pertaining to LD/Team functionality", ldTeam);
+            CreateToggle(RuskLaserOSCSetting.ToggleIRPistol, "Toggle IR/Pistol", "Reads for logs pertaining to IR/Pistol functionality", irPistol);
+            CreateToggle(RuskLaserOSCSetting.ToggleIRFire, "Toggle IR/Fire", "Reads for logs pertaining to IR/Fire functionality", irFire);
+            CreateToggle(RuskLaserOSCSetting.ToggleIRWeld, "Toggle IR/Weld", "Reads for logs pertaining to IR/Weld functionality", irWeld);
         }
 
         private enum RuskLaserOSCSetting
         {
             ToggleLaserDead,
-            ToggleLaserTeam
+            ToggleLaserTeam,
+            ToggleIRPistol,
+            ToggleIRFire,
+            ToggleIRWeld
         }
 
         protected override Task<bool> OnModuleStart()
@@ -68,7 +85,10 @@ namespace RuskLaserdomeOSC
         {
             ldTeam = GetSettingValue<bool>(RuskLaserOSCSetting.ToggleLaserTeam);
             ldDead = GetSettingValue<bool>(RuskLaserOSCSetting.ToggleLaserDead);
-            if (ldDead || ldTeam)
+            irPistol = GetSettingValue<bool>(RuskLaserOSCSetting.ToggleIRPistol);
+            irFire = GetSettingValue<bool>(RuskLaserOSCSetting.ToggleIRFire);
+            irWeld = GetSettingValue<bool>(RuskLaserOSCSetting.ToggleIRWeld);
+            if (ldDead || ldTeam || irPistol || irFire || irWeld)
             {
 
                 //This ensures that we have the latest log file.
@@ -90,6 +110,9 @@ namespace RuskLaserdomeOSC
                     // local var to track player death, ideally to avoid a case where a player somehow switches avatars mid parse and maybe causes undefined behavior.
                     var lastDead = playerDead;
                     var lastTeam = team;
+                    var lastPistol = holdPistol;
+                    var lastFire = holdFire;
+                    var lastWeld = holdWeld;
 
                     using (var stream = File.Open(currentLog.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     { 
@@ -161,6 +184,47 @@ namespace RuskLaserdomeOSC
                                         Log("Team Signal - 5 - Green team");
                                     }
                                 }
+
+                                if (irPistol)
+                                {
+                                    if (line.Contains("[Behaviour] Pickup object: 'Pistol"))
+                                    {
+                                        lastPistol = true;
+                                        Log("Pistol Grabbed");
+                                    } else if (line.Contains("[Behaviour] Drop object: 'Pistol"))
+                                    {
+                                        lastPistol = false;
+                                        Log("Pistol Dropped");
+                                    }
+                                }
+
+                                if (irFire)
+                                {
+                                    if (line.Contains("[Behaviour] Pickup object: 'Firepickup"))
+                                    {
+                                        lastFire = true;
+                                        Log("Fire Extinguisher Grabbed");
+                                    }
+                                    else if (line.Contains("[Behaviour] Drop object: 'Firepickup"))
+                                    {
+                                        lastFire = false;
+                                        Log("Fire Extinguisher Dropped");
+                                    }
+                                }
+
+                                if (irWeld)
+                                {
+                                    if (line.Contains("[Behaviour] Pickup object: 'Welder"))
+                                    {
+                                        lastWeld = true;
+                                        Log("Welder Grabbed");
+                                    }
+                                    else if (line.Contains("[Behaviour] Drop object: 'Welder"))
+                                    {
+                                        lastWeld = false;
+                                        Log("Welder Dropped");
+                                    }
+                                }
                             }
                         }
                         stream.Close();
@@ -176,6 +240,22 @@ namespace RuskLaserdomeOSC
                     {
                         team = lastTeam;
                         SendParameter("LD/Team", team);
+                    }
+                    if (holdWeld != lastWeld && irWeld)
+                    {
+                        holdWeld = lastWeld;
+                        Log("Welder value: " + holdWeld);
+                        SendParameter("IR/Weld", holdWeld);
+                    }
+                    if (holdFire != lastFire && irFire)
+                    {
+                        holdFire = lastFire;
+                        SendParameter("IR/Fire", holdFire);
+                    }
+                    if (holdPistol != lastPistol && irPistol)
+                    {
+                        holdPistol = lastPistol;
+                        SendParameter("IR/Pistol", holdPistol);
                     }
                 }
             }
