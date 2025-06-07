@@ -2,6 +2,7 @@
 using System.Text;
 using VRCOSC.App.SDK.Modules;
 using VRCOSC.App.SDK.VRChat;
+using Windows.UI.Input;
 
 namespace RuskLaserdomeOSC
 {
@@ -17,6 +18,10 @@ namespace RuskLaserdomeOSC
         bool irPistol = false;
         bool irFire = false;
         bool irWeld = false;
+        bool duoRight = false;
+        bool duoLeft = false;
+        bool aviSwep = false;
+        bool uasrfSwep = false;
 
         // Player vars
         bool playerDead = false;
@@ -24,6 +29,10 @@ namespace RuskLaserdomeOSC
         bool holdPistol = false;
         bool holdFire = false;
         bool holdWeld = false;
+        bool holdDuoRight = false;
+        bool holdDuoLeft = false;
+        bool holdAviSwep = false;
+        bool holdUASRFSwep = false;
 
         // Log consumer stuff
         int fileCheckCounter = 200;
@@ -34,11 +43,15 @@ namespace RuskLaserdomeOSC
         protected override void OnPreLoad()
         {
             base.OnPreLoad();
-            CreateToggle(RuskLaserOSCSetting.ToggleLaserDead, "Toggle LD/Dead", "Reads for logs pertaining to LD/Dead functionality", ldDead);
-            CreateToggle(RuskLaserOSCSetting.ToggleLaserTeam, "Toggle LD/Team", "Reads for logs pertaining to LD/Team functionality", ldTeam);
-            CreateToggle(RuskLaserOSCSetting.ToggleIRPistol, "Toggle IR/Pistol", "Reads for logs pertaining to IR/Pistol functionality", irPistol);
-            CreateToggle(RuskLaserOSCSetting.ToggleIRFire, "Toggle IR/Fire", "Reads for logs pertaining to IR/Fire functionality", irFire);
-            CreateToggle(RuskLaserOSCSetting.ToggleIRWeld, "Toggle IR/Weld", "Reads for logs pertaining to IR/Weld functionality", irWeld);
+            CreateToggle(RuskLaserOSCSetting.ToggleLaserDead, "Toggle LD/Dead", "Reads for logs pertaining to LD/Dead functionality, usually used to turn off and on emissions when dead or revived in Laserdome", ldDead);
+            CreateToggle(RuskLaserOSCSetting.ToggleLaserTeam, "Toggle LD/Team", "Reads for logs pertaining to LD/Team functionality for laserdome, 0 = no team, 1 = FFA, 2 = Red, 3 = Pink, 4 = Blue, 5 = Green", ldTeam);
+            CreateToggle(RuskLaserOSCSetting.ToggleIRPistol, "Toggle IR/Pistol", "Reads for logs pertaining to IR/Pistol functionality, toggles on when you're holding the pistol, and off when you're not.", irPistol);
+            CreateToggle(RuskLaserOSCSetting.ToggleIRFire, "Toggle IR/Fire", "Reads for logs pertaining to IR/Fire functionality, toggles on when you're holding the fire extinguisher, and off when you're not.", irFire);
+            CreateToggle(RuskLaserOSCSetting.ToggleIRWeld, "Toggle IR/Weld", "Reads for logs pertaining to IR/Weld functionality, toggles on when you're holding the welder, and off when you're not.", irWeld);
+            CreateToggle(RuskLaserOSCSetting.ToggleDuoRight, "Toggle Duo/Right", "Reads for logs pertaining to Duo/Right functionality toggles on when you're holding the right gun, and off when you're not.", duoRight);
+            CreateToggle(RuskLaserOSCSetting.ToggleDuoLeft, "Toggle Duo/Left", "Reads for logs pertaining to Duo/Left functionality toggles on when holding the left gun, and off when you're not.", duoLeft);
+            CreateToggle(RuskLaserOSCSetting.ToggleAviWeapon, "Toggle Avi/Weapon", "Reads for logs pertaining to Avi/Weapon functionality, toggles on when holding the weapon, and off when you're not.", aviSwep);
+            CreateToggle(RuskLaserOSCSetting.ToggleUASRFWeapon, "Toggle UASRF/Weapon", "Reads for logs pertaining to UASRF/Weapon functionality, toggles on when holding the weapon, and off when you're not.", uasrfSwep);
         }
 
         private enum RuskLaserOSCSetting
@@ -47,7 +60,11 @@ namespace RuskLaserdomeOSC
             ToggleLaserTeam,
             ToggleIRPistol,
             ToggleIRFire,
-            ToggleIRWeld
+            ToggleIRWeld,
+            ToggleDuoRight,
+            ToggleDuoLeft,
+            ToggleAviWeapon,
+            ToggleUASRFWeapon
         }
 
         protected override Task<bool> OnModuleStart()
@@ -55,7 +72,7 @@ namespace RuskLaserdomeOSC
             directoryInfo.Refresh();
             currentLog = directoryInfo.GetFiles().OrderByDescending(f => f.LastWriteTime).First();
             lastCountedLine = 0;
-          //  Log(currentLog.FullName + "- Log file set to this file.");
+            //  Log(currentLog.FullName + "- Log file set to this file.");
             playerDead = false;
             return Task.FromResult(true);
         }
@@ -88,7 +105,11 @@ namespace RuskLaserdomeOSC
             irPistol = GetSettingValue<bool>(RuskLaserOSCSetting.ToggleIRPistol);
             irFire = GetSettingValue<bool>(RuskLaserOSCSetting.ToggleIRFire);
             irWeld = GetSettingValue<bool>(RuskLaserOSCSetting.ToggleIRWeld);
-            if (ldDead || ldTeam || irPistol || irFire || irWeld)
+            duoRight = GetSettingValue<bool>(RuskLaserOSCSetting.ToggleDuoRight);
+            duoLeft = GetSettingValue<bool>(RuskLaserOSCSetting.ToggleDuoLeft);
+            aviSwep = GetSettingValue<bool>(RuskLaserOSCSetting.ToggleAviWeapon);
+            uasrfSwep = GetSettingValue<bool>(RuskLaserOSCSetting.ToggleUASRFWeapon);
+            if (ldDead || ldTeam || irPistol || irFire || irWeld || duoRight || duoLeft || aviSwep || uasrfSwep)
             {
 
                 //This ensures that we have the latest log file.
@@ -113,6 +134,10 @@ namespace RuskLaserdomeOSC
                     var lastPistol = holdPistol;
                     var lastFire = holdFire;
                     var lastWeld = holdWeld;
+                    var lastDuoRight = holdDuoRight;
+                    var lastDuoLeft = holdDuoLeft;
+                    var lastAviWep = holdAviSwep;
+                    var lastUASRFWep = holdUASRFSwep;
 
                     using (var stream = File.Open(currentLog.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     { 
@@ -225,6 +250,62 @@ namespace RuskLaserdomeOSC
                                         Log("Welder Dropped");
                                     }
                                 }
+
+                                if (duoRight)
+                                {
+                                    if (line.Contains("[Behaviour] Pickup object: 'GunP"))
+                                    {
+                                        lastDuoRight = true;
+                                        Log("Duobeat Right Gun Grabbed");
+                                    }
+                                    else if (line.Contains("[Behaviour] Drop object: 'GunP"))
+                                    {
+                                        lastDuoRight = false;
+                                        Log("Duobeat Right gun Dropped");
+                                    }
+                                }
+
+                                if (duoLeft)
+                                {
+                                    if (line.Contains("[Behaviour] Pickup object: 'GunB"))
+                                    {
+                                        lastDuoLeft = true;
+                                        Log("Duobeat Left Gun Grabbed");
+                                    }
+                                    else if (line.Contains("[Behaviour] Drop object: 'GunB"))
+                                    {
+                                        lastDuoLeft = false;
+                                        Log("Duobeat Left Gun Dropped");
+                                    }
+                                }
+
+                                if (aviSwep)
+                                {
+                                    if (line.Contains("[Behaviour] Pickup object: 'Weapon"))
+                                    {
+                                        lastAviWep = true;
+                                        Log("Aviwars Weapon Grabbed");
+                                    }
+                                    else if (line.Contains("[Behaviour] Drop object: 'Weapon"))
+                                    {
+                                        lastAviWep = false;
+                                        Log("Aviwars Weapon Dropped");
+                                    }
+                                }
+
+                                if (uasrfSwep)
+                                {
+                                    if (line.Contains("[Behaviour] Pickup object: 'Trigger"))
+                                    {
+                                        lastUASRFWep = true;
+                                        Log("UASRF Gun Grabbed");
+                                    }
+                                    else if (line.Contains("[Behaviour] Drop object: 'Trigger"))
+                                    {
+                                        lastUASRFWep = false;
+                                        Log("UASRF Gun Dropped");
+                                    }
+                                }
                             }
                         }
                         stream.Close();
@@ -256,6 +337,26 @@ namespace RuskLaserdomeOSC
                     {
                         holdPistol = lastPistol;
                         SendParameter("IR/Pistol", holdPistol);
+                    }
+                    if (holdDuoRight != lastDuoRight && duoRight)
+                    {
+                        holdDuoRight = lastDuoRight;
+                        SendParameter("Duo/Right", holdDuoRight);
+                    }
+                    if (holdDuoLeft != lastDuoLeft && duoLeft)
+                    {
+                        holdDuoLeft = lastDuoLeft;
+                        SendParameter("Duo/Left", holdDuoLeft);
+                    }
+                    if (holdAviSwep != lastAviWep && aviSwep)
+                    {
+                        holdAviSwep = lastAviWep;
+                        SendParameter("Avi/Weapon", holdAviSwep);
+                    }
+                    if (holdUASRFSwep != lastUASRFWep && uasrfSwep)
+                    {
+                        holdUASRFSwep = lastUASRFWep;
+                        SendParameter("UASRF/Weapon", holdUASRFSwep);
                     }
                 }
             }
